@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>용수철 탄성력 측정 가상실험</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    background: linear-gradient(180deg, #edf2f7 0%, #f8fafc 100%);
+    color: #1f2937;
+  }
+  .wrap { max-width: 1280px; margin: 18px auto; padding: 0 16px 20px; }
+  .card {
+    background: #ffffff;
+    border: 1px solid #e5eaf0;
+    border-radius: 22px;
+    box-shadow: 0 12px 32px rgba(32, 54, 88, 0.08);
+    overflow: hidden;
+  }
+  .head { padding: 18px 24px 12px; border-bottom: 1px solid #eef2f6; }
+  .title { margin: 0; font-size: 30px; font-weight: 900; letter-spacing: -0.6px; }
+  .sub { margin: 8px 0 0 0; font-size: 17px; color: #4b5563; font-weight: 700; }
+  .stageWrap { padding: 18px; }
+  #simArea {
+    position: relative;
+    width: 100%;
+    height: 690px;
+    border-radius: 18px;
+    overflow: hidden;
+    background: radial-gradient(circle at 18% 10%, rgba(149, 184, 228, 0.10), transparent 16%), linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+    border: 1px solid #e7edf5;
+  }
+  #sensor {
+    position: absolute;
+    width: 210px;
+    height: 126px;
+    left: 280px;
+    top: 367px;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+  }
+  #sensor.grabbing { cursor: grabbing; }
+  .sensorBody {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 28px 28px 18px 18px;
+    background: linear-gradient(180deg, #555d69 0%, #434a55 100%);
+    border: 3px solid #2b313a;
+    box-shadow: 0 14px 28px rgba(47, 56, 69, 0.22);
+  }
+  .sensorGrip {
+    position: absolute;
+    right: 20px;
+    top: -24px;
+    width: 112px;
+    height: 32px;
+    background: linear-gradient(180deg, #6a7280 0%, #4e5663 100%);
+    border: 3px solid #2f3540;
+    border-bottom: none;
+    border-radius: 14px 14px 0 0;
+  }
+  .sensorScreen {
+    position: absolute;
+    left: 34px;
+    top: 16px;
+    width: 142px;
+    height: 50px;
+    border-radius: 12px;
+    background: #d8f4cb;
+    border: 3px solid rgba(0,0,0,0.28);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: Consolas, "Courier New", monospace;
+    color: #10240f;
+    font-size: 31px;
+    font-weight: 900;
+    letter-spacing: -1px;
+  }
+  .sensorLabel {
+    position: absolute;
+    left: 34px;
+    bottom: 17px;
+    font-size: 24px;
+    color: #ffffff;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+  .sensorHook {
+    position: absolute;
+    left: -18px;
+    top: 58px;
+    width: 28px;
+    height: 12px;
+    border-radius: 7px;
+    background: #3e444f;
+    border: 2px solid #262b33;
+  }
+  .resetBtn {
+    position: absolute;
+    right: 18px;
+    bottom: 18px;
+    appearance: none;
+    border: 0;
+    border-radius: 12px;
+    padding: 12px 18px;
+    background: #2563eb;
+    color: white;
+    font-size: 17px;
+    font-weight: 800;
+    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.28);
+    cursor: pointer;
+  }
+  .caption {
+    position: absolute;
+    left: 24px;
+    bottom: 18px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.92);
+    border: 1px solid #e5e7eb;
+    color: #4b5563;
+    font-size: 16px;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="head">
+      <h1 class="title">용수철이 늘어난 길이에 따른 탄성력 측정</h1>
+      <p class="sub">힘 센서를 오른쪽으로 드래그하여 용수철을 늘려 보세요.</p>
+    </div>
+    <div class="stageWrap">
+      <div id="simArea">
+        <svg id="scene" width="100%" height="100%" viewBox="0 0 1200 690" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <linearGradient id="woodGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#c69269"/>
+              <stop offset="100%" stop-color="#a8734f"/>
+            </linearGradient>
+            <linearGradient id="deskGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#eef2f6"/>
+              <stop offset="100%" stop-color="#e2e8f0"/>
+            </linearGradient>
+            <marker id="arrowThin" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+              <path d="M1,1 L10,6 L1,11" fill="none" stroke="#dc5a3a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+            </marker>
+            <marker id="arrowRed" markerWidth="5" markerHeight="5" refX="4.2" refY="2.5" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L5,2.5 L0,5 z" fill="#e53935"></path>
+            </marker>
+            <marker id="arrowBlue" markerWidth="5" markerHeight="5" refX="4.2" refY="2.5" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L5,2.5 L0,5 z" fill="#2563eb"></path>
+            </marker>
+          </defs>
+
+          <rect x="0" y="500" width="1200" height="190" fill="url(#deskGrad)"></rect>
+          <line x1="0" y1="500" x2="1200" y2="500" stroke="#ced6df" stroke-width="3"></line>
+
+          <rect x="72" y="360" width="100" height="140" rx="6" fill="url(#woodGrad)" stroke="#8a5a3d" stroke-width="3"></rect>
+          <text x="72" y="546" font-size="26" font-weight="800" fill="#6d4c39">나무 도막</text>
+          <line x1="172" y1="430" x2="184" y2="430" stroke="#9a7846" stroke-width="4"></line>
+          <circle id="woodRing" cx="194" cy="430" r="14" fill="none" stroke="#cfa55f" stroke-width="5"></circle>
+
+          <!-- visible spring -->
+          <line id="springStartLink" x1="194" y1="430" x2="208" y2="430" stroke="#8f9399" stroke-width="4"></line>
+          <path id="springPath" d="" fill="none" stroke="#50545a" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"></path>
+          <line id="springEndLine" x1="0" y1="0" x2="0" y2="0" stroke="#8f9399" stroke-width="4"></line>
+          <circle id="sensorRing" cx="0" cy="430" r="10" fill="none" stroke="#9b9fa5" stroke-width="4"></circle>
+
+          <g id="rulerGroup">
+            <rect x="220" y="468" width="900" height="68" rx="8" fill="#fbf7e6" stroke="#baae87" stroke-width="2"></rect>
+            <g id="rulerTicks"></g>
+          </g>
+
+          <!-- vertical guide aligned to sensor left edge -->
+          <line id="zeroGuide" x1="280" y1="168" x2="280" y2="392" stroke="#97a2b2" stroke-width="2" stroke-dasharray="7 7"></line>
+          <line id="measureLine" x1="220" y1="118" x2="280" y2="118" stroke="#dc5a3a" stroke-width="4" marker-start="url(#arrowThin)" marker-end="url(#arrowThin)"></line>
+          <text id="measureText" x="250" y="92" font-size="31" font-weight="900" text-anchor="middle" fill="#cc4629">2.0 cm</text>
+
+          
+
+          
+        </svg>
+
+        <div id="sensor" aria-label="힘 센서">
+          <div class="sensorBody">
+            <div class="sensorGrip"></div>
+            <div class="sensorHook"></div>
+            <div class="sensorScreen" id="sensorScreen">0.0 N</div>
+            <div class="sensorLabel">힘 센서</div>
+          </div>
+        </div>
+
+        <svg id="overlaySvg" width="100%" height="100%" viewBox="0 0 1200 690" preserveAspectRatio="xMidYMid meet" style="position:absolute; inset:0; pointer-events:none; z-index:20; overflow:visible;">
+          <defs>
+            <marker id="overlayArrowRed" markerWidth="5" markerHeight="5" refX="4.2" refY="2.5" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L5,2.5 L0,5 z" fill="#e53935"></path>
+            </marker>
+            <marker id="overlayArrowBlue" markerWidth="5" markerHeight="5" refX="4.2" refY="2.5" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L5,2.5 L0,5 z" fill="#2563eb"></path>
+            </marker>
+          </defs>
+          <g id="forceArrows">
+            <line id="pullArrow" x1="276" y1="430" x2="276" y2="430" stroke="#e53935" stroke-opacity="0.50" stroke-width="8" stroke-linecap="round" marker-end="url(#overlayArrowRed)"></line>
+            <line id="elasticArrow" x1="276" y1="430" x2="276" y2="430" stroke="#2563eb" stroke-opacity="0.55" stroke-width="8" stroke-linecap="round" marker-end="url(#overlayArrowBlue)"></line>
+          </g>
+          <g id="forceLegend">
+            <rect x="820" y="72" width="300" height="112" rx="14" fill="rgba(255,255,255,0.92)" stroke="#d7e0ea" stroke-width="2"></rect>
+            <line x1="848" y1="108" x2="908" y2="108" stroke="#e53935" stroke-opacity="0.72" stroke-width="8" stroke-linecap="round" marker-end="url(#overlayArrowRed)"></line>
+            <text x="930" y="115" font-size="22" font-weight="800" fill="#d53030">힘 센서를 잡아당기는 힘</text>
+            <line x1="908" y1="148" x2="848" y2="148" stroke="#2563eb" stroke-opacity="0.72" stroke-width="8" stroke-linecap="round" marker-end="url(#overlayArrowBlue)"></line>
+            <text x="930" y="155" font-size="22" font-weight="800" fill="#2458d6">용수철의 탄성력</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const simArea = document.getElementById('simArea');
+  const sensor = document.getElementById('sensor');
+  const springPath = document.getElementById('springPath');
+  const springStartLink = document.getElementById('springStartLink');
+  const springEndLine = document.getElementById('springEndLine');
+  const sensorRing = document.getElementById('sensorRing');
+  const measureLine = document.getElementById('measureLine');
+  const measureText = document.getElementById('measureText');
+  const sensorScreen = document.getElementById('sensorScreen');
+  const rulerTicks = document.getElementById('rulerTicks');
+  const zeroGuide = document.getElementById('zeroGuide');
+  const pullArrow = document.getElementById('pullArrow');
+  const elasticArrow = document.getElementById('elasticArrow');
+
+  const rulerZeroX = 220;
+  const anchorX = 208;
+  const anchorY = 430;
+  const initialLeft = 280;   // left edge of sensor aligns with 2 cm mark
+  const sensorTop = 367;
+  const minLeft = initialLeft;
+  const maxLeft = 860;
+  const pxPerCm = 30;
+  const forcePerCm = 0.75;
+
+  let dragging = false;
+  let isDraggingForce = false;
+  let dragStartClientX = 0;
+  let dragStartExtension = 0;
+  let returningFrame = null;
+  let lastReturnTime = 0;
+
+  // 손으로 당기는 거리에 비해 센서 이동량이 조금씩 줄어들어,
+  // 늘어날수록 저항이 커지는 느낌을 만든다. (실제 마우스 저항은 제어 불가)
+  const stiffness = 0.002;
+  const returnRate = 11.5; // 1/s: 큰 변형일수록 초기에 더 빠르게 복원
+
+  function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
+  function round1(v) { return Math.round(v * 10) / 10; }
+
+  function buildRuler() {
+    let html = '';
+    const startX = rulerZeroX;
+    const totalCm = 30;
+    const baseY = 536;
+
+    for (let row = 0; row < 4; row++) {
+      const y = 482 + row * 13;
+      html += `<line x1="220" y1="${y}" x2="1120" y2="${y}" stroke="#ddd5bb" stroke-width="1"/>`;
+    }
+
+    for (let i = 0; i <= totalCm * 10; i++) {
+      const x = startX + i * (pxPerCm / 10);
+      let tickH = 10, strokeW = 1;
+      if (i % 10 === 0) { tickH = 36; strokeW = 2.5; }
+      else if (i % 5 === 0) { tickH = 26; strokeW = 1.8; }
+      else { tickH = 16; strokeW = 1.1; }
+      html += `<line x1="${x}" y1="${baseY}" x2="${x}" y2="${baseY - tickH}" stroke="#7b6d45" stroke-width="${strokeW}"/>`;
+      if (i % 10 === 0) {
+        const cm = i / 10;
+        html += `<text x="${x - (cm >= 10 ? 11 : 7)}" y="455" font-size="22" font-weight="900" fill="#5f542e">${cm}</text>`;
+      }
+    }
+    rulerTicks.innerHTML = html;
+  }
+
+  function springPathD(x1, x2, y) {
+    const head = 8;
+    const tail = 8;
+    const start = x1 + head;
+    const end = x2 - tail;
+    const length = Math.max(end - start, 46);
+    const pitch = 12; // width of one visible coil
+    const loops = Math.max(6, Math.floor(length / pitch));
+    const actualPitch = length / loops;
+    const rx = actualPitch / 2;
+    const ry = 16;
+    let d = `M ${x1} ${y} L ${start} ${y}`;
+    let x = start;
+    for (let i = 0; i < loops; i++) {
+      d += ` C ${x + rx * 0.15} ${y - ry}, ${x + rx * 0.85} ${y - ry}, ${x + rx} ${y}`;
+      d += ` C ${x + rx * 1.15} ${y + ry}, ${x + rx * 1.85} ${y + ry}, ${x + actualPitch} ${y}`;
+      x += actualPitch;
+    }
+    d += ` L ${x2} ${y}`;
+    return d;
+  }
+
+  function updateScene() {
+    const left = parseFloat(sensor.style.left);
+    const totalLengthCm = round1((left - rulerZeroX) / pxPerCm);
+    const extensionCm = round1((left - initialLeft) / pxPerCm);
+    const forceN = round1(extensionCm * forcePerCm);
+
+    // sensor left edge is the measurement target
+    zeroGuide.setAttribute('x1', left);
+    zeroGuide.setAttribute('x2', left);
+    measureLine.setAttribute('x1', rulerZeroX);
+    measureLine.setAttribute('x2', left);
+    measureText.setAttribute('x', (rulerZeroX + left) / 2);
+    measureText.textContent = `${totalLengthCm.toFixed(1)} cm`;
+
+    const actX = left - 4;
+    const actY = 430;
+    const forceLen = Math.max(0, forceN * 28);
+    pullArrow.setAttribute('x1', actX);
+    pullArrow.setAttribute('y1', actY);
+    pullArrow.setAttribute('x2', actX + forceLen);
+    pullArrow.setAttribute('y2', actY);
+    elasticArrow.setAttribute('x1', actX);
+    elasticArrow.setAttribute('y1', actY);
+    elasticArrow.setAttribute('x2', actX - forceLen);
+    elasticArrow.setAttribute('y2', actY);
+    if (forceLen < 2) {
+      pullArrow.style.display = 'none';
+      elasticArrow.style.display = 'none';
+    } else {
+      elasticArrow.style.display = 'block';
+      pullArrow.style.display = isDraggingForce ? 'block' : 'none';
+    }
+
+    // visible spring between wood ring and sensor hook/ring
+    const sensorHookCenterX = left - 4;
+    const springEndX = sensorHookCenterX - 18;
+    springStartLink.setAttribute('x1', 194);
+    springStartLink.setAttribute('y1', anchorY);
+    springStartLink.setAttribute('x2', anchorX);
+    springStartLink.setAttribute('y2', anchorY);
+    springPath.setAttribute('d', springPathD(anchorX, springEndX, anchorY));
+    springEndLine.setAttribute('x1', springEndX);
+    springEndLine.setAttribute('y1', anchorY);
+    springEndLine.setAttribute('x2', sensorHookCenterX - 10);
+    springEndLine.setAttribute('y2', anchorY);
+    sensorRing.setAttribute('cx', sensorHookCenterX + 2);
+    sensorRing.setAttribute('cy', anchorY);
+
+    sensorScreen.textContent = `${forceN.toFixed(1)} N`;
+  }
+
+  function setSensorLeft(newLeft) {
+    sensor.style.left = `${newLeft}px`;
+    sensor.style.top = `${sensorTop}px`;
+    updateScene();
+  }
+
+  function stopReturning() {
+    if (returningFrame !== null) {
+      cancelAnimationFrame(returningFrame);
+      returningFrame = null;
+    }
+    lastReturnTime = 0;
+  }
+
+  function returnToRest(now) {
+    if (dragging) return;
+    if (!lastReturnTime) lastReturnTime = now;
+    const dt = Math.min((now - lastReturnTime) / 1000, 0.05);
+    lastReturnTime = now;
+    const extension = Math.max(0, parseFloat(sensor.style.left) - initialLeft);
+
+    // 감쇠를 매우 크게 준 비진동 복원: 기준점을 절대로 넘어가지 않는다.
+    const remaining = extension * Math.exp(-returnRate * dt);
+    if (remaining <= 0.25) {
+      setSensorLeft(initialLeft);
+      returningFrame = null;
+      lastReturnTime = 0;
+      return;
+    }
+    setSensorLeft(initialLeft + remaining);
+    returningFrame = requestAnimationFrame(returnToRest);
+  }
+
+  function startReturning() {
+    stopReturning();
+    if (parseFloat(sensor.style.left) > initialLeft) {
+      returningFrame = requestAnimationFrame(returnToRest);
+    } else {
+      setSensorLeft(initialLeft);
+    }
+  }
+
+  sensor.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    stopReturning();
+    dragging = true;
+    isDraggingForce = true;
+    dragStartClientX = e.clientX;
+    dragStartExtension = Math.max(0, parseFloat(sensor.style.left) - initialLeft);
+    sensor.classList.add('grabbing');
+    sensor.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+
+  sensor.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    // 힘을 더 주어야 같은 거리만큼 늘어나는 비선형 드래그 변환.
+    // 클릭 당시 위치에서도 연결이 끊기지 않도록 시작 변형을 반영한다.
+    const dragDelta = e.clientX - dragStartClientX;
+    const root = 1 + stiffness * dragStartExtension;
+    const inside = Math.max(1, root * root + 2 * stiffness * dragDelta);
+    const extension = (Math.sqrt(inside) - 1) / stiffness;
+    setSensorLeft(clamp(initialLeft + extension, minLeft, maxLeft));
+  });
+
+  function stopDrag(e) {
+    if (!dragging) return;
+    dragging = false;
+    isDraggingForce = false;
+    sensor.classList.remove('grabbing');
+    if (sensor.hasPointerCapture(e.pointerId)) sensor.releasePointerCapture(e.pointerId);
+    updateScene();
+    startReturning();
+  }
+
+  sensor.addEventListener('pointerup', stopDrag);
+  sensor.addEventListener('pointercancel', stopDrag);
+
+  buildRuler();
+  setSensorLeft(initialLeft);
+})();
+</script>
+</body>
+</html>
